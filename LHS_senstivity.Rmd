@@ -1,0 +1,32 @@
+---
+title: "Sensitivity Analysis - Latin Hypercube Sampling"
+author: "Paloma Cartwright, Juliet Cohen, Julia Parish"
+date: '2022-04-26'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Sensitivity Analysis - Latin Hypercube Sampling
+
+
+This environmental model was completed as an assignment for the course, Environmental Data Science 230 | Environmental Science & Management: Modeling Environmental Systems. The goal of this assignment was to build a model ... and conduct a ... . The source data and model design is based on
+
+
+
+## 1. Code a function to compute atmospheric conductance Cat (how easily vapor diffuses from vegetation surfaces)
+
+
+## 2. 
+
+
+## 3. Conduct a sensitivity analysis
+Consider the sensitivity of your estimate to uncertainty in the following parameters and inputs
+
+
+## Summary of results
+
+
+# References

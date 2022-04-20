@@ -5,7 +5,7 @@
 
 This model was developed as an assignment for a UCSB Bren School Master’s program course, Environmental Data Science 230: | Environmental Science Management 232: Environmental Modeling. 
 
-Original assignment instructions can be found [here](https://naomitague.github.io/ESM232_course/assignments/almond_yield_function.html). 
+Original assignment instructions can be found [here](https://naomitague.github.io/ESM232_course/assignments/assign_LHS.html). 
 
 ### Motivation and Goal
 This environmental model and analysis was completed as an assignment for the course, Environmental Data Science 230 | Environmental Science & Management: Modeling Environmental Systems. The source data and model design is based on ... This assignment focuses on developing skills to ...

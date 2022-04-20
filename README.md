@@ -1,5 +1,3 @@
-# EDS230_
-
 # EDS230: Modeling Environmental Systems
 ### Authors: Group I Paloma Cartwright, Juliet Cohen, Julia Parish
 

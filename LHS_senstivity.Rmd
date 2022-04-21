@@ -17,7 +17,7 @@ library(purrr)
 # Sensitivity Analysis - Latin Hypercube Sampling
 
 
-This environmental model was completed as an assignment for the course, Environmental Data Science 230 | Environmental Science & Management: Modeling Environmental Systems. The goal of this assignment was to build a model ... and conduct a ... . The source data and model design is based on
+This environmental model was completed as an assignment for the course, Environmental Data Science 230 | Environmental Science & Management: Modeling Environmental Systems. The goal of this assignment was to build a model ... and conduct a ... . The model design is based on
 
 
 
@@ -27,7 +27,7 @@ This environmental model was completed as an assignment for the course, Environm
 source(here("atmcon.R"))
 ```
 
-## 2. 
+## 2. Run `atmcon` model and provide with a single estimate of atmospheric conductance for this forest.  
 
 ```{r}
 ac_forest <- atmcon(vm = 250, h = 1000)
@@ -39,7 +39,11 @@ print(paste0("The atmospheric conductance for this vegetation is ", ac_forest_ro
 ```
 
 ## 3. Conduct a sensitivity analysis
-Consider the sensitivity of your estimate to uncertainty in the following parameters and inputs
+Consider the sensitivity of estimates to uncertainty in the following parameters and inputs:
+- *h*
+- *k~d*
+- *k~0*
+- *v*
 
 ```{r}
 factors = c("vm", "h", "kd", "k")
@@ -98,7 +102,7 @@ ggplot(data = atmospheric_conductances, aes(y = ac)) +
 ## D. Graph
 
 ```{r}
-psse::plotscatter(sens_ac)
+#pse::plotscatter(sens_ac)
 ```
 
 ## E. Plot PRCC

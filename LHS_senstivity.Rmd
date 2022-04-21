@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(here)
 library(SciViews) # ln() function
+library(pse)
+library(purrr)
 ```
 
 # Sensitivity Analysis - Latin Hypercube Sampling
@@ -25,19 +27,90 @@ This environmental model was completed as an assignment for the course, Environm
 source(here("atmcon.R"))
 ```
 
+## 2. 
+
 ```{r}
 ac_forest <- atmcon(vm = 250, h = 1000)
 ac_forest
+
+ac_forest_rounded <- round(ac_forest[[1]], 2)
+
+print(paste0("The atmospheric conductance for this vegetation is ", ac_forest_rounded, " centimeters per second."))
 ```
-
-## 2. 
-
 
 ## 3. Conduct a sensitivity analysis
 Consider the sensitivity of your estimate to uncertainty in the following parameters and inputs
 
+```{r}
+factors = c("vm", "h", "kd", "k")
+
+nsets = 100
+
+q = c("qnorm", "qunif", "qnorm", "qnorm")
+
+q.arg = list(list(mean = 250, sd = 30), 
+             list(min = 950, max = 1050), 
+             list(mean = 0.7, sd = 0.07), 
+             list(mean = 0.1, sd = 0.01))
+q.arg
+
+# generate samples
+sens_ac = LHS(NULL, factors, nsets, q, q.arg)
+#sens_ac
+#summary(sens_ac)
+#sens_ac$data
+# NULL indicates there is no model
+sens_pars <- get.data(sens_ac)
+sens_pars
+```
 
 ## Summary of results
 
+```{r}
+source(here("atmcon.R"))
+ac_lhs <- pmap(sens_pars, atmcon)
+head(ac_lhs[[2]])
+```
 
-# References
+```{r}
+atmospheric_conductances <- ac_lhs %>% 
+  map_dfr(`[`, "ac")
+
+atmospheric_conductances
+```
+
+## C. Graph
+
+```{r}
+#data <- atmospheric_conductances %>% 
+#  gather(value = "value", key = )
+
+ggplot(data = atmospheric_conductances, aes(y = ac)) +
+  geom_boxplot() +
+  labs(y = "Atmospheric Conductance") +
+  #theme(x = element_blank()) +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+  
+```
+
+## D. Graph
+
+```{r}
+psse::plotscatter(sens_ac)
+```
+
+## E. Plot PRCC
+
+## F. Discussion
+
+## References
+
+
+
+
+
+
+
+

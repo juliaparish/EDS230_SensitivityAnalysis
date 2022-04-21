@@ -7,6 +7,9 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(here)
+library(SciViews) # ln() function
 ```
 
 # Sensitivity Analysis - Latin Hypercube Sampling
@@ -18,6 +21,14 @@ This environmental model was completed as an assignment for the course, Environm
 
 ## 1. Code a function to compute atmospheric conductance Cat (how easily vapor diffuses from vegetation surfaces)
 
+```{r}
+source(here("atmcon.R"))
+```
+
+```{r}
+ac_forest <- atmcon(vm = 250, h = 1000)
+ac_forest
+```
 
 ## 2. 
 

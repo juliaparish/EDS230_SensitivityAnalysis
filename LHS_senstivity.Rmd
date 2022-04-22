@@ -1,6 +1,6 @@
 ---
 title: "Sensitivity Analysis - Latin Hypercube Sampling"
-author: "Paloma Cartwright, Juliet Cohen, Julia Parish"
+author: "Group H - Paloma Cartwright, Juliet Cohen, Julia Parish"
 date: '2022-04-26'
 output: pdf_document
 ---
@@ -17,64 +17,72 @@ library(purrr)
 # Sensitivity Analysis - Latin Hypercube Sampling
 
 
-This environmental model was completed as an assignment for the course, Environmental Data Science 230 | Environmental Science & Management: Modeling Environmental Systems. The goal of this assignment was to build a model ... and conduct a ... . The model design is based on
+This environmental model was completed as an assignment for the course, Environmental Data Science 230 | Environmental Science & Management: Modeling Environmental Systems. The goal of this assignment was to code a function to compute atmosphere condcuctance and to conduct a formal sensitivity analysis using the Latin Hypercube Sampling (LHS) random sampling method. This assignment focuses on developing skills to create a atmospheric conductance model function, utilize the Latin Hypercube Sampling to generate near random sample of parameter values, and then plot the atmospheric conductance values.
 
+## 1. Code a function to compute atmospheric conductance
 
-
-## 1. Code a function to compute atmospheric conductance Cat (how easily vapor diffuses from vegetation surfaces)
-
-```{r}
-source(here("atmcon.R"))
+```{r model}
+source(here("R/atmcon.R"))
 ```
 
-## 2. Run `atmcon` model and provide with a single estimate of atmospheric conductance for this forest.  
+## 2. Run `atmcon` model and provide a single estimate of atmospheric conductance for this forest.  
 
-```{r}
+```{r run model}
 ac_forest <- atmcon(vm = 250, h = 1000)
 ac_forest
 
 ac_forest_rounded <- round(ac_forest[[1]], 2)
 
-print(paste0("The atmospheric conductance for this vegetation is ", ac_forest_rounded, " centimeters per second."))
+print(paste0("The atmospheric conductance for this vegetation is ", 
+             ac_forest_rounded, " centimeters per second."))
 ```
 
 ## 3. Conduct a sensitivity analysis
 Consider the sensitivity of estimates to uncertainty in the following parameters and inputs:
+
 - *h*
-- *k~d*
-- *k~0*
+- *kd*
+- *k0*
 - *v*
 
-```{r}
+### 3.A Use LHS to generate parameter values for the 4 parameters
+```{r lHS}
+# define 4 parameters to test
 factors = c("vm", "h", "kd", "k")
 
+#define sample size
 nsets = 100
 
+# set distributions for defined parameters
+# qnorm=windspeed, qunif=height, qnorm=k, qnorm=k0
 q = c("qnorm", "qunif", "qnorm", "qnorm")
 
-q.arg = list(list(mean = 250, sd = 30), 
-             list(min = 950, max = 1050), 
-             list(mean = 0.7, sd = 0.07), 
-             list(mean = 0.1, sd = 0.01))
+q.arg = list(list(mean = 250, sd = 30), #windspeed
+             list(min = 950, max = 1050), #height
+             list(mean = 0.7, sd = 0.07), #k
+             list(mean = 0.1, sd = 0.01)) #k0
 q.arg
 
-# generate samples
+# run LHS and generate samples
 sens_ac = LHS(NULL, factors, nsets, q, q.arg)
 #sens_ac
 #summary(sens_ac)
 #sens_ac$data
 # NULL indicates there is no model
+
 sens_pars <- get.data(sens_ac)
-sens_pars
+head(sens_pars)
 ```
 
-## Summary of results
+### 3.B Run the atmospheric conductance model, `atmcon`, for LHS derived parameters and return aerodynamic conductances
 
 ```{r}
-source(here("atmcon.R"))
+source(here("R/atmcon.R"))
+
 ac_lhs <- pmap(sens_pars, atmcon)
 head(ac_lhs[[2]])
 ```
+
 
 ```{r}
 atmospheric_conductances <- ac_lhs %>% 
@@ -83,36 +91,43 @@ atmospheric_conductances <- ac_lhs %>%
 atmospheric_conductances
 ```
 
-## C. Graph
+### 3.C. Plot conductance estimates in a way that accounts for parameter uncertainty
 
-```{r}
+```{r, fig.cap= "This boxplot shows distribution of atmospheric conducances with given forest parameters"}
 #data <- atmospheric_conductances %>% 
 #  gather(value = "value", key = )
 
 ggplot(data = atmospheric_conductances, aes(y = ac)) +
   geom_boxplot() +
-  labs(y = "Atmospheric Conductance") +
-  #theme(x = element_blank()) +
+  labs(y = "Atmospheric Conductance cm/s",
+       title = "Forest Atmospheric Conductance") +
+  theme_minimal() +
   theme(axis.title.x = element_blank(), 
         axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+        axis.ticks.x = element_blank()) 
   
 ```
 
-## D. Graph
+### 3.D. Plot conductance estimates against each of your parameters
 
 ```{r}
 #pse::plotscatter(sens_ac)
 ```
 
-## E. Plot PRCC
+### 3.E. Estimate the Partial Rank Correlation Coefficients (PRCC)
 
-## F. Discussion
+```{r}
 
-## References
+```
 
 
+### 3.F. Discussion
 
+#### What do the results tell about how aerodynamic conductance? 
+
+#### What does it suggest about what you should focus on if you want to reduce uncertainty in aerodymaic conductance estimates? 
+
+#### Does this tell you anything about the sensitivity of plant water use to climate change?
 
 
 

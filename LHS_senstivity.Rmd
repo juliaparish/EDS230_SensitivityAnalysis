@@ -19,6 +19,8 @@ library(here)
 library(SciViews) # ln() function
 library(pse)
 library(purrr)
+library(ppcor)
+library(kableExtra)
 ```
 
 ## 1. Code a function to compute atmospheric conductance
@@ -42,15 +44,33 @@ print(paste0("The atmospheric conductance for this vegetation is ",
 ## 3. Conduct a sensitivity analysis
 Consider the sensitivity of estimates to uncertainty in the following parameters and inputs:
 
+- *vm*
 - *h*
 - *kd*
 - *k0*
-- *v*
+
+Windspeeds `vm` are normally distributed with a `mean` of `250 cm/sec` with a `standard deviation` of `30 cm/sec`.
+
+For vegetation height, `h`, assume that height is somewhere between 9.5 and 10.5 m (but any value in that range is equally likely).
+
+The typical values of `kd` is 0.7 and `k0` is 0.1, Assume that they are normally distributed with standard deviation of 1% of their default values.
 
 ### 3.A. Use LHS to generate parameter values for the 4 parameters
-```{r lHS}
+```{r LHS params}
 # define 4 parameters to test
 factors = c("vm", "h", "kd", "k")
+
+vm_mean = 250
+vm_sd = 30
+
+h_min = 9.5 * 100
+h_max = 10.5 * 100
+
+kd_value = 0.7
+k0_value = 0.1 
+
+kd_sd = 0.01
+k0_sd = 0.01 
 
 #define sample size
 nsets = 100
@@ -59,19 +79,20 @@ nsets = 100
 # qnorm=windspeed, qunif=height, qnorm=k, qnorm=k0
 q = c("qnorm", "qunif", "qnorm", "qnorm")
 
-q.arg = list(list(mean = 250, sd = 30), #windspeed
-             list(min = 950, max = 1050), #height
-             list(mean = 0.7, sd = 0.07), #k
-             list(mean = 0.1, sd = 0.01)) #k0
+q.arg = list(list(mean = vm_mean, sd = vm_sd), #windspeed
+             list(min = h_min, max = h_max), #height
+             list(mean = kd_value, sd = kd_sd), #k
+             list(mean = k0_value, sd = k0_sd)) #k0
 q.arg
+```
 
+```{r LHS}
 # run LHS and generate samples
 sens_ac = LHS(NULL, factors, nsets, q, q.arg) # NULL indicates there is no model
 
 #sens_ac
 #summary(sens_ac)
 #sens_ac$data
-
 
 sens_pars <- get.data(sens_ac)
 head(sens_pars)
@@ -127,6 +148,18 @@ plot2
 ```
 
 ### 3.E. Estimate the Partial Rank Correlation Coefficients (PRCC)
+
+```{r}
+sens_con_df <- data.frame(sens_conductance$data)
+
+atmcon_prcc <- pcor(sens_con_df)
+```
+
+```{r}
+sens_con_table <- kable(atmcon_prcc)
+sens_con_table
+```
+
 
 ```{r, fig.cap="The partial rank correlation coefficient (PRCC) of the basic reproduction in model (atmcon) with respect to other model parameters. For each parameter, the absolute value of its PRCC represents the sensitivity of the parameter - the larger the value is, the more sensitive the parameter is to the corresponding parameter. Parameters: vm = windspeed, h = vegetation height, kd = constant, k = constant."}
 

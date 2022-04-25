@@ -68,9 +68,9 @@ h_min = 9.5 * 100
 h_max = 10.5 * 100
 
 kd_value = 0.7
-k0_value = 0.1 
-
 kd_sd = 0.01
+
+k0_value = 0.1 
 k0_sd = 0.01 
 
 #define sample size
@@ -119,7 +119,7 @@ head(atmospheric_conductances)
 
 plot1 <- ggplot(data = atmospheric_conductances, aes(y = ac)) +
   geom_boxplot(fill='seashell1', color="grey58") +
-  geom_text(aes(x = 0.025, y = 32.5, label = "32.59"), stat = "unique", 
+  geom_text(aes(x = 0.01, y = 25, label = "24.77"), stat = "unique", 
             size = 3, color = "slategrey") +
   labs(y = "Atmospheric Conductance (cm/s)",
        title = "Atmospheric Conductance - Forest Parameters",
@@ -162,17 +162,19 @@ atmcon_prcc_df <- data.frame(atmcon_prcc) %>%
 ```
 
 ```{r}
-sens_con_table <- kable(atmcon_prcc_df)
+sens_con_table <- kable(atmcon_prcc_df)  %>% 
+  row_spec(c(0), background = "lightgray")
+
 sens_con_table
 ```
 
+\newpage
 
 ```{r, fig.cap="The partial rank correlation coefficient (PRCC) of the basic reproduction in model (atmcon) with respect to other model parameters. For each parameter, the absolute value of its PRCC represents the sensitivity of the parameter - the larger the value is, the more sensitive the parameter is to the corresponding parameter. Parameters: vm = windspeed, h = vegetation height, kd = constant, k = constant."}
 
 plot3 <- pse::plotprcc(sens_conductance, col = "slateblue")
 ```
 
-\newpage
 
 ### 3.F. Discussion
 

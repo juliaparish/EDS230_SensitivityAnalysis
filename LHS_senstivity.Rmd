@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=6, fig.height=4)
 
 # Sensitivity Analysis - Latin Hypercube Sampling
 
-This environmental model was completed as an assignment for the course, Environmental Data Science 230 | Environmental Science & Management: Modeling Environmental Systems. The goal of this assignment was to code a function to compute atmosphere condcuctance and to conduct a formal sensitivity analysis using the Latin Hypercube Sampling (LHS) random sampling method. This assignment focuses on developing skills to create a atmospheric conductance model function, utilize the Latin Hypercube Sampling to generate near random sample of parameter values, and then plot the atmospheric conductance values.
+This environmental model was completed as an assignment for the course, Environmental Data Science 230 | Environmental Science & Management: Modeling Environmental Systems. The goal of this assignment was to code a function to compute atmosphere conductance and to conduct a formal sensitivity analysis using the Latin Hypercube Sampling (LHS) random sampling method. This assignment focuses on developing skills to create a atmospheric conductance model function, utilize the Latin Hypercube Sampling to generate near random sample of parameter values, and then plot the atmospheric conductance values.
 
 ## Load Libraries
 ```{r, message=FALSE, warning=FALSE}
@@ -61,12 +61,14 @@ The typical values of `kd` is 0.7 and `k0` is 0.1. Assume that they are normally
 # define 4 parameters to test
 factors = c("vm", "h", "kd", "k")
 
-vm_mean = 250
+vm_mean = 250 # units = centimeters / second
 vm_sd = 30
 
+# convert units of meters to centimeters
 h_min = 9.5 * 100
 h_max = 10.5 * 100
 
+# static values
 kd_value = 0.7
 kd_sd = 0.01
 
@@ -82,7 +84,7 @@ q = c("qnorm", "qunif", "qnorm", "qnorm")
 
 q.arg = list(list(mean = vm_mean, sd = vm_sd), #windspeed
              list(min = h_min, max = h_max), #height
-             list(mean = kd_value, sd = kd_sd), #k
+             list(mean = kd_value, sd = kd_sd), #kd
              list(mean = k0_value, sd = k0_sd)) #k0
 ```
 
@@ -104,9 +106,7 @@ head(sens_pars)
 source(here("R/atmcon.R"))
 
 ac_lhs <- pmap(sens_pars, atmcon)
-```
 
-```{r}
 atmospheric_conductances <- ac_lhs %>% 
   map_dfr(`[`, "ac")
 
@@ -153,15 +153,14 @@ plot2 <- pse::plotscatter(sens_conductance,
 ```{r}
 sens_con_df <- data.frame(sens_conductance$data)
 
-atmcon_prcc <- pcor(sens_con_df)
+# calculate pairwise correlations for each pair of variables
+atmcon_prcc <- pcor(sens_con_df) # list
 
+# convert from list to a dataframe, clean names, & subset columns
 atmcon_prcc_df <- data.frame(atmcon_prcc) %>% 
   janitor::clean_names() %>% 
   dplyr::select(estimate_vm:p_value_k)
 
-```
-
-```{r}
 sens_con_table <- kable(atmcon_prcc_df)  %>% 
   row_spec(c(0), background = "lightgray")
 
@@ -180,17 +179,15 @@ plot3 <- pse::plotprcc(sens_conductance, col = "slateblue")
 
 #### What do the results tell about how aerodynamic conductance?
 
-The results from the scatter plot tells us that `wind speed` and `k` have the greatest impacts on aerodynamic conductance. Parameters `kd` and `h` do not have a strong correlation with aerodynamic conductance. Additionally, the partial rank correlation coefficient tells us that wind speed and k0 have the greatest impacts on aerodynamic conductance because those values are closest to 1. 
+The results from the scatter plot tells us that `wind speed` (`vm`) and `k` have the greatest impacts on aerodynamic conductance, as shown by the points being closer together and generally following the linear trend line. Parameters `kd` and `h` do not have a strong correlation with aerodynamic conductance, as shown by the points being more broadly scattered and not generally following a trend. Additionally, the partial rank correlation coefficient tells us that `wind speed` and `k` (`k0`) have the greatest impacts on aerodynamic conductance because those values are closest to 1. The other variables, `h` and `kd` have values closer to 0, which indicate they have little impact on aerodynamic conductance.
 
 #### What does it suggest about what you should focus on if you want to reduce uncertainty in aerodymaic conductance estimates? 
 
-
-
-
+In order to reduce uncertainty in aerodynamic conductance estimates, the results discussed above suggest that we should vary `wind speed` (`vm`) and `k` rather than `h` or `kd`. 
 
 #### Does this tell you anything about the sensitivity of plant water use to climate change?
 
-
+These results imply that plant water use will _increase_ with climate change, because as climate change becomes more extreme, weather events will become more extreme, such as those that are associated with high wind speeds like hurricanes and rain storms. Therefore, with more wind, the scatter plot shows higher aerodynamic conductance, so plants will require more water to survive moving forward with climate change. 
 
 
 

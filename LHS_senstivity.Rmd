@@ -5,8 +5,8 @@ date: '2022-04-26'
 output: pdf_document
 ---
 
-```{r setup, include=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width=6, fig.height=4)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=6, fig.height=4, warning=FALSE, message=FALSE)
 ```
 
 # Sensitivity Analysis - Latin Hypercube Sampling
@@ -52,7 +52,7 @@ Consider the sensitivity of estimates to uncertainty in the following parameters
 
 Windspeeds `vm` are normally distributed with a `mean` of `250 cm/sec` with a `standard deviation` of `30 cm/sec`.
 
-For vegetation height, `h`, assume that height is somewhere between 9.5 and 10.5 m (but any value in that range is equally likely).
+For vegetation height, `h`, assume that height is somewhere between `9.5` and `10.5 m` (but any value in that range is equally likely).
 
 The typical values of `kd` is 0.7 and `k0` is 0.1. Assume that they are normally distributed with standard deviation of 1% of their default values.
 
@@ -97,10 +97,20 @@ sens_ac = LHS(NULL, factors, nsets, q, q.arg) # NULL indicates there is no model
 #sens_ac$data
 
 sens_pars <- get.data(sens_ac)
-head(sens_pars)
+
+sens_pars_head <- head(sens_pars)
+
+sens_pars_table <- kable(sens_pars_head,
+                         caption = "Subsample of Sample Parameter values")
+
+sens_pars_table
 ```
 
+\newpage
+
 ### 3.B. Run the atmospheric conductance model, `atmcon`, for LHS derived parameters and return aerodynamic conductances
+
+See Table 2.
 
 ```{r}
 source(here("R/atmcon.R"))
@@ -110,8 +120,16 @@ ac_lhs <- pmap(sens_pars, atmcon)
 atmospheric_conductances <- ac_lhs %>% 
   map_dfr(`[`, "ac")
 
-head(atmospheric_conductances)
+atmcon_head <- head(atmospheric_conductances)
+
+atmcon_head_table <- kable(atmcon_head,
+                           caption = "Subsample of Atmospheric Conductances")
+
+atmcon_head_table 
 ```
+
+\newpage
+
 
 ### 3.C. Plot conductance estimates in a way that accounts for parameter uncertainty
 
@@ -145,10 +163,11 @@ plot2 <- pse::plotscatter(sens_conductance,
                           pch = 21, bg= "slateblue", col = "grey58", cex = 0.9)
 ```
 
-
 \newpage
 
 ### 3.E. Estimate the Partial Rank Correlation Coefficients (PRCC)
+
+See Table 3.
 
 ```{r}
 sens_con_df <- data.frame(sens_conductance$data)
@@ -161,8 +180,8 @@ atmcon_prcc_df <- data.frame(atmcon_prcc) %>%
   janitor::clean_names() %>% 
   dplyr::select(estimate_vm:p_value_k)
 
-sens_con_table <- kable(atmcon_prcc_df)  %>% 
-  row_spec(c(0), background = "lightgray")
+sens_con_table <- kable(atmcon_prcc_df,
+                        caption = "Pairwise PRCC for each pair of variables given the other variables")
 
 sens_con_table
 ```
@@ -174,14 +193,13 @@ sens_con_table
 plot3 <- pse::plotprcc(sens_conductance, col = "slateblue")
 ```
 
-
 ### 3.F. Discussion
 
 #### What do the results tell about how aerodynamic conductance?
 
 The results from the scatter plot tells us that `wind speed` (`vm`) and `k` have the greatest impacts on aerodynamic conductance, as shown by the points being closer together and generally following the linear trend line. Parameters `kd` and `h` do not have a strong correlation with aerodynamic conductance, as shown by the points being more broadly scattered and not generally following a trend. Additionally, the partial rank correlation coefficient tells us that `wind speed` and `k` (`k0`) have the greatest impacts on aerodynamic conductance because those values are closest to 1. The other variables, `h` and `kd` have values closer to 0, which indicate they have little impact on aerodynamic conductance.
 
-#### What does it suggest about what you should focus on if you want to reduce uncertainty in aerodymaic conductance estimates? 
+#### What does it suggest about what you should focus on if you want to reduce uncertainty in aerodynmaic conductance estimates? 
 
 In order to reduce uncertainty in aerodynamic conductance estimates, the results discussed above suggest that we should vary `wind speed` (`vm`) and `k` rather than `h` or `kd`. 
 

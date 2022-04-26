@@ -76,10 +76,10 @@ h_max = 10.5 * 100
 
 # static values
 kd_value = 0.7
-kd_sd = 0.01
+kd_sd = 0.01 * kd_value
 
 k0_value = 0.1 
-k0_sd = 0.01 
+k0_sd = 0.01 * k0_value
 
 #define sample size
 nsets = 100
@@ -140,8 +140,6 @@ atmcon_head_table
 ```
 
 
-
-
 ### 3.C. Plot conductance estimates in a way that accounts for parameter uncertainty
 
 ```{r, fig.cap= "This boxplot shows distribution of atmospheric conducances with given estimated forest parameters"}
@@ -178,6 +176,17 @@ plot2 <- pse::plotscatter(sens_conductance,
 
 ### 3.E. Estimate the Partial Rank Correlation Coefficients (PRCC)
 
+```{r}
+
+prcc_table <- sens_conductance$prcc[[1]][[7]][1]
+vm <- prcc_table[[1]][1]
+h <- prcc_table[[1]][2]
+kd <- prcc_table[[1]][3]
+k <- prcc_table[[1]][4]
+```
+
+The partial rank coefficient for wind speed is `r vm`, height is `r h`, `r kd` is kd and k is `r k`. 
+
 See Table 3.
 
 ```{r, fig.cap="Table 3. Pairwise PRCC for each pair of variables given the other variables"}
@@ -208,11 +217,11 @@ plot3 <- pse::plotprcc(sens_conductance, col = "slateblue")
 
 #### What do the results tell about how aerodynamic conductance?
 
-The results from the scatter plot tells us that `wind speed` (`vm`) and `k` have the greatest impacts on aerodynamic conductance, as shown by the points being closer together and generally following the linear trend line. Parameters `kd` and `h` do not have a strong correlation with aerodynamic conductance, as shown by the points being more broadly scattered and not generally following a trend. Additionally, the partial rank correlation coefficient tells us that `wind speed` and `k` (`k0`) have the greatest impacts on aerodynamic conductance because those values are closest to 1. The other variables, `h` and `kd` have values closer to 0, which indicate they have little impact on aerodynamic conductance.
+The results from the scatter plot tells us that `wind speed` has the greatest impacts on aerodynamic conductance, as shown by the points being closer together and following the linear trend line. Parameters `k`, `kd` and `h` do not have a strong correlation with aerodynamic conductance, as shown by the points being more broadly scattered and not generally following a trend. Additionally, the partial rank correlation coefficient tells us that `wind speed` has the greatest impacts on aerodynamic conductance because that value is closest to 1. The other variables, `h`, `k` and `kd` have values further than 1, which indicate they have little impact on aerodynamic conductance.
 
 #### What does it suggest about what you should focus on if you want to reduce uncertainty in aerodynmaic conductance estimates? 
 
-In order to reduce uncertainty in aerodynamic conductance estimates, the results discussed above suggest that we should vary `wind speed` (`vm`) and `k` rather than `h` or `kd`. 
+In order to reduce uncertainty in aerodynamic conductance estimates, the results discussed above suggest that we should vary `wind speed` (`vm`) rather than `k`, `h` or `kd`. 
 
 #### Does this tell you anything about the sensitivity of plant water use to climate change?
 

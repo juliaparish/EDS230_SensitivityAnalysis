@@ -146,8 +146,6 @@ atmcon_head_table
 
 plot1 <- ggplot(data = atmospheric_conductances, aes(y = ac)) +
   geom_boxplot(fill='seashell1', color="grey58") +
-  geom_text(aes(x = 0.01, y = 25, label = "24.77"), stat = "unique", 
-            size = 3, color = "slategrey") +
   labs(y = "Atmospheric Conductance (cm/s)",
        title = "Atmospheric Conductance - Forest Parameters",
        subtitle = "Variation in Estimated Conductance Outputs",
@@ -217,7 +215,7 @@ plot3 <- pse::plotprcc(sens_conductance, col = "slateblue")
 
 #### What do the results tell about how aerodynamic conductance?
 
-The results from the scatter plot tells us that `wind speed` has the greatest impacts on aerodynamic conductance, as shown by the points being closer together and following the linear trend line. Parameters `k`, `kd` and `h` do not have a strong correlation with aerodynamic conductance, as shown by the points being more broadly scattered and not generally following a trend. Additionally, the partial rank correlation coefficient tells us that `wind speed` has the greatest impacts on aerodynamic conductance because that value is closest to 1. The other variables, `h`, `k` and `kd` have values further than 1, which indicate they have little impact on aerodynamic conductance.
+The results from the scatter plot tells us that `wind speed` has the greatest impacts on aerodynamic conductance, as shown by the points being closer together and following the linear trend line. Parameters `k`, `kd` and `h` do not have a strong correlation with aerodynamic conductance, as shown by the points being more broadly scattered and not generally following a trend. Additionally, the partial rank correlation coefficient tells us that `wind speed` has the greatest impacts on aerodynamic conductance because that value is closest to 1. The other variables, `h`, `k` and `kd` have values further from 1, which indicate they have less influence on aerodynamic conductance.
 
 #### What does it suggest about what you should focus on if you want to reduce uncertainty in aerodynmaic conductance estimates? 
 
@@ -225,8 +223,6 @@ In order to reduce uncertainty in aerodynamic conductance estimates, the results
 
 #### Does this tell you anything about the sensitivity of plant water use to climate change?
 
-These results imply that plant water use will _increase_ with climate change, because as climate change becomes more extreme, weather events will become more extreme, such as those that are associated with high wind speeds like hurricanes and rain storms. Therefore, with more wind, the scatter plot shows higher aerodynamic conductance, so plants will require more water to survive moving forward with climate change. 
-
-
+These results imply that plant water use will _increase_ with climate change, because as climate change becomes more extreme, weather events will become more extreme, such as those that are associated with high wind speeds like hurricanes, Santa Ana winds, and rain storms. Therefore, with more wind, the scatter plot shows higher aerodynamic conductance, so plants will require more water to survive moving forward with climate change. 
 
 

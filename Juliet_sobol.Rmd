@@ -1,0 +1,306 @@
+---
+title: "Sensitivity Analysis - Latin Hypercube Sampling"
+author: "Group H - Paloma Cartwright, Juliet Cohen, Julia Parish"
+date: '2022-04-26'
+header-includes:
+  - \usepackage{float}
+  - \floatplacement{figure}{H}
+output: 
+  pdf_document:
+    extra_dependencies: ["float"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=6, fig.height=4, warning=FALSE, 
+                      message=FALSE, fig.pos='!H')
+```
+
+# Sensitivity Analysis - Latin Hypercube Sampling
+
+This environmental model was completed as an assignment for the course, Environmental Data Science 230 | Environmental Science & Management: Modeling Environmental Systems. The goal of this assignment was to code a function to compute atmosphere conductance and to conduct a formal sensitivity analysis using the Latin Hypercube Sampling (LHS) random sampling method. This assignment focuses on developing skills to create a atmospheric conductance model function, utilize the Latin Hypercube Sampling to generate near random sample of parameter values, and then plot the atmospheric conductance values.
+
+## Load Libraries
+```{r, message=FALSE, warning=FALSE}
+library(here)
+library(SciViews) # ln() function
+library(pse)
+library(purrr)
+library(ppcor)
+library(kableExtra)
+library(sensitivity)
+```
+
+## 1. Code a function to compute atmospheric conductance
+
+```{r model}
+source(here("R/atmcon.R"))
+```
+
+## 2. Run `atmcon` model and provide a single estimate of atmospheric conductance for this forest.  
+
+```{r run model}
+ac_forest <- atmcon(vm = 250, h = 1000)
+# ac_forest
+
+ac_forest_rounded <- round(ac_forest[[1]], 2)
+
+print(paste0("The atmospheric conductance for this vegetation is ", 
+             ac_forest_rounded, " centimeters per second."))
+```
+
+\newpage 
+## 3. Conduct sensitivity analysis
+Consider the sensitivity of estimates to uncertainty in the following parameters and inputs:
+
+- *vm*
+- *h*
+- *kd*
+- *k0*
+
+Windspeeds `vm` are normally distributed with a `mean` of `250 cm/sec` with a `standard deviation` of `30 cm/sec`.
+
+For vegetation height, `h`, assume that height is somewhere between `9.5` and `10.5 m` (but any value in that range is equally likely).
+
+The typical values of `kd` is 0.7 and `k0` is 0.1. Assume that they are normally distributed with standard deviation of 1% of their default values.
+
+### Sobol Method
+
+```{r}
+# generate two examples of random number from parmeter distributions
+
+# define 4 parameters to test
+factors = c("vm", "h", "kd", "k")
+
+vm_mean = 250 # units = centimeters / second
+vm_sd = 30
+
+# convert units of meters to centimeters
+h_min = 9.5 * 100
+h_max = 10.5 * 100
+
+# static values
+kd_value = 0.7
+kd_sd = 0.01 * kd_value
+
+k0_value = 0.1 
+k0_sd = 0.01 * k0_value
+
+#define sample size
+nsets = 1000
+
+
+# q = c("qnorm", "qunif", "qnorm", "qnorm")
+# 
+# q.arg = list(list(mean = vm_mean, sd = vm_sd), #windspeed
+#              list(min = h_min, max = h_max), #height
+#              list(mean = kd_value, sd = kd_sd), #kd
+#              list(mean = k0_value, sd = k0_sd)) #k0
+
+k = rnorm(mean = k0_value, sd = k0_sd, n = nsets)
+kd = rnorm(mean = kd_value, sd = kd_sd, n = nsets)
+vm = rnorm(mean = vm_mean, sd = vm_sd, n = nsets)
+h = runif(min = h_min, max = h_max, n = nsets)
+
+X1 = cbind.data.frame(k, kd, vm, h)
+
+# repeat sampling
+k = rnorm(mean = k0_value, sd = k0_sd, n = nsets)
+kd = rnorm(mean = kd_value, sd = kd_sd, n = nsets)
+vm = rnorm(mean = vm_mean, sd = vm_sd, n = nsets)
+h = runif(min = h_min, max = h_max, n = nsets)
+
+X2 = cbind.data.frame(k, kd, vm, h)
+
+# there are different versions of sobol functions that have different approaches for estimating parameters and indices, we use an approach implemented by jansen 
+
+sens_atmcon_Sobol = sobolSalt(model = NULL, X1, X2, nboot = 100)
+
+# Take a look at the Sobol generated sensitivity object
+# your parameters sets for sensitivity analysis are in X
+
+# run model for all parameter sets
+# make sure you give the parameters names
+
+source(here("R/atmcon.R"))
+
+parms = as.data.frame(sens_Catm_Sobol$X)
+colnames(parms)= colnames(X1)
+# convert the list putput into a df using mapdf as in her code in part b
+# as.matrix
+model_output = pmap(parms, atmcon)
+# turn this list into a vector ???
+#model_output_vector <-()
+
+sens_Catm_Sobol = sensitivity::tell(sens_atmcon_Sobol, model_output, res.names = "ga")
+
+# main effect:  partitions variance (main effect without co-variance) - sums approximately to one
+sens_Catm_Sobol$S
+```
+
+
+
+### 3.A. Use LHS to generate parameter values for the 4 parameters
+
+```{r LHS params}
+# define 4 parameters to test
+factors = c("vm", "h", "kd", "k")
+
+vm_mean = 250 # units = centimeters / second
+vm_sd = 30
+
+# convert units of meters to centimeters
+h_min = 9.5 * 100
+h_max = 10.5 * 100
+
+# static values
+kd_value = 0.7
+kd_sd = 0.01 * kd_value
+
+k0_value = 0.1 
+k0_sd = 0.01 * k0_value
+
+#define sample size
+nsets = 100
+
+# set distributions for defined parameters
+# qnorm=windspeed, qunif=height, qnorm=k, qnorm=k0
+q = c("qnorm", "qunif", "qnorm", "qnorm")
+
+q.arg = list(list(mean = vm_mean, sd = vm_sd), #windspeed
+             list(min = h_min, max = h_max), #height
+             list(mean = kd_value, sd = kd_sd), #kd
+             list(mean = k0_value, sd = k0_sd)) #k0
+```
+
+
+\newpage 
+
+```{r LHS, fig.cap = "Table 1"}
+# run LHS and generate samples
+sens_ac = LHS(NULL, factors, nsets, q, q.arg) # NULL indicates there is no model
+
+#sens_ac
+#summary(sens_ac)
+#sens_ac$data
+
+sens_pars <- get.data(sens_ac)
+
+sens_pars_head <- head(sens_pars)
+
+sens_pars_table <- kable(sens_pars_head, 
+                         caption = "Subsample of Sample Parameter Values") %>% 
+  kable_styling(latex_options = "HOLD_position")
+
+sens_pars_table
+```
+
+
+
+### 3.B. Run the atmospheric conductance model, `atmcon`, for LHS derived parameters and return aerodynamic conductances
+
+See Table 2.
+
+```{r, fig.cap="Table 2. Subsample of Atmospheric Conductances"}
+source(here("R/atmcon.R"))
+
+ac_lhs <- pmap(sens_pars, atmcon)
+
+atmospheric_conductances <- ac_lhs %>% 
+  map_dfr(`[`, "ac")
+
+atmcon_head <- head(atmospheric_conductances)
+
+atmcon_head_table <- kable(atmcon_head, 
+                           caption = "Subsample of Atmospheric Conductances") %>% 
+  kable_styling(latex_options = "HOLD_position")
+
+atmcon_head_table 
+```
+
+
+### 3.C. Plot conductance estimates in a way that accounts for parameter uncertainty
+
+```{r, fig.cap= "This boxplot shows distribution of atmospheric conducances with given estimated forest parameters"}
+
+plot1 <- ggplot(data = atmospheric_conductances, aes(y = ac)) +
+  geom_boxplot(fill='seashell1', color="grey58") +
+  labs(y = "Atmospheric Conductance (cm/s)",
+       title = "Atmospheric Conductance - Forest Parameters",
+       subtitle = "Variation in Estimated Conductance Outputs",
+       caption = "Data: Values modeled based on parameters estimated using LHS.") +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) 
+plot1
+```
+
+### 3.D. Plot conductance estimates against each of your parameters
+
+```{r, fig.cap="Analyzing atompheric conductance parameter sensitivity. Parameters: vm = windspeed, h = vegetation height, kd = constant, k = constant."}
+# link LHS object (sens_conductance) to outputs
+sens_conductance <- pse::tell(sens_ac, 
+                              t(atmospheric_conductances),
+                              res.names = "Atmospheric Conductance")
+
+# plot conductance vs params
+plot2 <- pse::plotscatter(sens_conductance, 
+                          pch = 21, bg= "slateblue", col = "grey58", cex = 0.9)
+```
+
+\newpage
+
+### 3.E. Estimate the Partial Rank Correlation Coefficients (PRCC)
+
+```{r}
+
+prcc_table <- sens_conductance$prcc[[1]][[7]][1]
+vm <- prcc_table[[1]][1]
+h <- prcc_table[[1]][2]
+kd <- prcc_table[[1]][3]
+k <- prcc_table[[1]][4]
+```
+
+The partial rank coefficient for wind speed is `r vm`, height is `r h`, `r kd` is kd and k is `r k`. 
+
+See Table 3.
+
+```{r, fig.cap="Table 3. Pairwise PRCC for each pair of variables given the other variables"}
+sens_con_df <- data.frame(sens_conductance$data)
+
+# calculate pairwise correlations for each pair of variables
+atmcon_prcc <- pcor(sens_con_df) # list
+
+# convert from list to a dataframe, clean names, & subset columns
+atmcon_prcc_df <- data.frame(atmcon_prcc) %>% 
+  janitor::clean_names() %>% 
+  dplyr::select(estimate_vm:p_value_k)
+
+sens_con_table <- kable(atmcon_prcc_df, 
+                        caption = "Pairwise PRCC for each pair of variables given the other variables." ) %>% 
+  kable_styling(latex_options = "HOLD_position")
+
+sens_con_table
+```
+
+
+```{r, fig.cap="The partial rank correlation coefficient (PRCC) of the basic reproduction in model (atmcon) with respect to other model parameters. For each parameter, the absolute value of its PRCC represents the sensitivity of the parameter - the larger the value is, the more sensitive the parameter is to the corresponding parameter. Parameters: vm = windspeed, h = vegetation height, kd = constant, k = constant."}
+
+plot3 <- pse::plotprcc(sens_conductance, col = "slateblue")
+```
+
+### 3.F. Discussion
+
+#### What do the results tell about how aerodynamic conductance?
+
+The results from the scatter plot tells us that `wind speed` has the greatest impacts on aerodynamic conductance, as shown by the points being closer together and following the linear trend line. Parameters `k`, `kd` and `h` do not have a strong correlation with aerodynamic conductance, as shown by the points being more broadly scattered and not generally following a trend. Additionally, the partial rank correlation coefficient tells us that `wind speed` has the greatest impacts on aerodynamic conductance because that value is closest to 1. The other variables, `h`, `k` and `kd` have values further from 1, which indicate they have less influence on aerodynamic conductance.
+
+#### What does it suggest about what you should focus on if you want to reduce uncertainty in aerodynmaic conductance estimates? 
+
+In order to reduce uncertainty in aerodynamic conductance estimates, the results discussed above suggest that we should vary `wind speed` (`vm`) rather than `k`, `h` or `kd`. 
+
+#### Does this tell you anything about the sensitivity of plant water use to climate change?
+
+These results imply that plant water use will _increase_ with climate change, because as climate change becomes more extreme, weather events will become more extreme, such as those that are associated with high wind speeds like hurricanes, Santa Ana winds, and rain storms. Therefore, with more wind, the scatter plot shows higher aerodynamic conductance, so plants will require more water to survive moving forward with climate change. 
+
+

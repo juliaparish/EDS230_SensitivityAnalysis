@@ -2,11 +2,17 @@
 title: "Sensitivity Analysis - Latin Hypercube Sampling"
 author: "Group H - Paloma Cartwright, Juliet Cohen, Julia Parish"
 date: '2022-04-26'
-output: pdf_document
+header-includes:
+  - \usepackage{float}
+  - \floatplacement{figure}{H}
+output: 
+  pdf_document:
+    extra_dependencies: ["float"]
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width=6, fig.height=4, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo = TRUE, fig.width=6, fig.height=4, warning=FALSE, 
+                      message=FALSE, fig.pos='!H')
 ```
 
 # Sensitivity Analysis - Latin Hypercube Sampling
@@ -88,7 +94,10 @@ q.arg = list(list(mean = vm_mean, sd = vm_sd), #windspeed
              list(mean = k0_value, sd = k0_sd)) #k0
 ```
 
-```{r LHS}
+
+\newpage 
+
+```{r LHS, fig.cap = "Table 1"}
 # run LHS and generate samples
 sens_ac = LHS(NULL, factors, nsets, q, q.arg) # NULL indicates there is no model
 
@@ -100,19 +109,20 @@ sens_pars <- get.data(sens_ac)
 
 sens_pars_head <- head(sens_pars)
 
-sens_pars_table <- kable(sens_pars_head,
-                         caption = "Subsample of Sample Parameter values")
+sens_pars_table <- kable(sens_pars_head, 
+                         caption = "Subsample of Sample Parameter Values") %>% 
+  kable_styling(latex_options = "HOLD_position")
 
 sens_pars_table
 ```
 
-\newpage
+
 
 ### 3.B. Run the atmospheric conductance model, `atmcon`, for LHS derived parameters and return aerodynamic conductances
 
 See Table 2.
 
-```{r}
+```{r, fig.cap="Table 2. Subsample of Atmospheric Conductances"}
 source(here("R/atmcon.R"))
 
 ac_lhs <- pmap(sens_pars, atmcon)
@@ -122,13 +132,14 @@ atmospheric_conductances <- ac_lhs %>%
 
 atmcon_head <- head(atmospheric_conductances)
 
-atmcon_head_table <- kable(atmcon_head,
-                           caption = "Subsample of Atmospheric Conductances")
+atmcon_head_table <- kable(atmcon_head, 
+                           caption = "Subsample of Atmospheric Conductances") %>% 
+  kable_styling(latex_options = "HOLD_position")
 
 atmcon_head_table 
 ```
 
-\newpage
+
 
 
 ### 3.C. Plot conductance estimates in a way that accounts for parameter uncertainty
@@ -169,7 +180,7 @@ plot2 <- pse::plotscatter(sens_conductance,
 
 See Table 3.
 
-```{r}
+```{r, fig.cap="Table 3. Pairwise PRCC for each pair of variables given the other variables"}
 sens_con_df <- data.frame(sens_conductance$data)
 
 # calculate pairwise correlations for each pair of variables
@@ -180,13 +191,13 @@ atmcon_prcc_df <- data.frame(atmcon_prcc) %>%
   janitor::clean_names() %>% 
   dplyr::select(estimate_vm:p_value_k)
 
-sens_con_table <- kable(atmcon_prcc_df,
-                        caption = "Pairwise PRCC for each pair of variables given the other variables")
+sens_con_table <- kable(atmcon_prcc_df, 
+                        caption = "Pairwise PRCC for each pair of variables given the other variables." ) %>% 
+  kable_styling(latex_options = "HOLD_position")
 
 sens_con_table
 ```
 
-\newpage
 
 ```{r, fig.cap="The partial rank correlation coefficient (PRCC) of the basic reproduction in model (atmcon) with respect to other model parameters. For each parameter, the absolute value of its PRCC represents the sensitivity of the parameter - the larger the value is, the more sensitive the parameter is to the corresponding parameter. Parameters: vm = windspeed, h = vegetation height, kd = constant, k = constant."}
 
